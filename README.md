@@ -1,4 +1,4 @@
-Title: Library Node API
+Library Node API
 
 Description: This is a basic Node.js API that allows users to create books and authors through REST requests. 
 The API is built using the MVC structure with Express and uses Mongoose to connect to a MongoDB database. 
