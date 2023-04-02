@@ -1,6 +1,6 @@
-import mongoose, { mongo } from "mongoose";
+import mongoose from "mongoose";
 
-mongoose.connect("mongodb+srv://gsMachado:root@node-express.ctmldf3.mongodb.net/node-books");
+mongoose.connect(process.env.STRING_CONNECTION_DB);
 
 let db = mongoose.connection;
 

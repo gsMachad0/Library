@@ -2,55 +2,64 @@ import authors from "../models/Author.js";
 
 class AuthorsController {
 
-    static listAuthors = (req, res) => {
-        authors.find((err, authors) => {
-            res.status(200).json(authors);
-        })
-    }
+	static listAuthors = async (req, res) => {
+		try{
+			const authorsResult = await authors.find();
+			res.status(200).json(authorsResult);
+		} catch(error)
+		{
+			res.status(500).json({message: `Internal error ${error.message}`});
+		}    
+	};
 
-    static listAuthorByID = (req, res) => {
-        const id = req.params.id;
-        authors.findById(id, (err, authors)=>{
-            if(err){
-                res.status(400).send({message: `${err.message} - author with ID[${id}] not found.`});
-            } else {
-                res.status(200).send(authors);
-            }
-        });
-    }
+	static listAuthorByID = async (req, res) => {
+		const id = req.params.id;
+		try
+		{    
+			const authorResult = await authors.findById(id);
+			res.status(200).json(authorResult);
+		} catch(error)
+		{
+			res.status(400).send({message: `${error.message} - author with ID[${id}] not found.`});
+		}
+   
+	};
 
-    static registerAuthor = (req, res) => {
-        let author = new authors(req.body);
-        author.save((err) => {
-            if(err){
-                res.status(500).send({message: `${err.message} - Failed to register new author`});
-            } else {
-                res.status(201).send(author.toJSON());
-            }
-        });
-    }
+	static registerAuthor = async (req, res) => {
+		try
+		{
+			let author = new authors(req.body);
+			await author.save();
+			res.status(201).json(author);
+		} catch(error)
+		{
+			res.status(500).send({message: `${error.message} - Failed to register new author`});
+		}
+	};
 
-    static updateAuthor = (req, res) => {
-        const id = req.params.id;
-        authors.findByIdAndUpdate(id, {$set: req.body}, (err) =>{
-            if(!err){
-                res.status(200).send({message: 'Author updated'});
-            } else {
-                res.status(500).send({message: `${err.message} - Failed to update author`});
-            }
-        });
-    }
+	static updateAuthor = async (req, res) => {
+		try
+		{      
+			const id = req.params.id;
+			await authors.findByIdAndUpdate(id, {$set: req.body});
+			res.status(200).send({message: "Author updated"});
+		} catch(error)
+		{
+			res.status(500).send({message: `${error.message} - Failed to update author`});
+		}   
+	};
 
-    static deleteAuthor = (req, res) => {
-        const id = req.params.id;
-        authors.findByIdAndDelete(id, (err) =>{
-            if(!err){
-                res.status(200).send({message: 'author deleted'});
-            } else {
-                res.status(500).send({message: `${err.message} - Failed to delete author`});
-            }
-        });
-    }
+	static deleteAuthor = async (req, res) => {    
+		try
+		{
+			const id = req.params.id;
+			await authors.findByIdAndDelete(id);
+			res.status(200).send({message: "author deleted"});
+		} catch(error)
+		{
+			res.status(500).send({message: `${error.message} - Failed to delete author`});
+		}
+	};
 
 }
 
