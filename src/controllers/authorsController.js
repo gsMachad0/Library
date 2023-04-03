@@ -1,19 +1,19 @@
-import mongoose from "mongoose";
+import NotFound from "../errors/NotFound.js";
 import authors from "../models/Author.js";
 
 class AuthorsController {
 
-	static listAuthors = async (req, res) => {
+	static listAuthors = async (req, res, next) => {
 		try{
 			const authorsResult = await authors.find();
 			res.status(200).json(authorsResult);
 		} catch(error)
 		{
-			res.status(500).json({message: `Internal error ${error.message}`});
+			next(error);
 		}    
 	};
 
-	static listAuthorByID = async (req, res) => {
+	static listAuthorByID = async (req, res, next) => {
 		const id = req.params.id;
 		try
 		{    
@@ -21,19 +21,15 @@ class AuthorsController {
 			if(authorResult != null){
 				res.status(200).send(authorResult);
 			} else {
-				res.status(404).send({message: `ID ${id} not found!`});
+				next(new NotFound(`ID ${id} not found!`));
 			}
 		} catch(error)
 		{
-			if(error instanceof mongoose.Error.CastError){
-				res.status(400).send({message: `${error.message} - Wrong data informed`});
-			} else {
-				res.status(500).send({message: `${error.message} - Internal server error`});
-			}
+			next(error);
 		}   
 	};
 
-	static registerAuthor = async (req, res) => {
+	static registerAuthor = async (req, res, next) => {
 		try
 		{
 			let author = new authors(req.body);
@@ -41,11 +37,11 @@ class AuthorsController {
 			res.status(201).json(author);
 		} catch(error)
 		{
-			res.status(500).send({message: `${error.message} - Failed to register new author`});
+			next(error);
 		}
 	};
 
-	static updateAuthor = async (req, res) => {
+	static updateAuthor = async (req, res, next) => {
 		try
 		{      
 			const id = req.params.id;
@@ -53,11 +49,11 @@ class AuthorsController {
 			res.status(200).send({message: "Author updated"});
 		} catch(error)
 		{
-			res.status(500).send({message: `${error.message} - Failed to update author`});
+			next(error);
 		}   
 	};
 
-	static deleteAuthor = async (req, res) => {    
+	static deleteAuthor = async (req, res, next) => {    
 		try
 		{
 			const id = req.params.id;
@@ -65,7 +61,7 @@ class AuthorsController {
 			res.status(200).send({message: "author deleted"});
 		} catch(error)
 		{
-			res.status(500).send({message: `${error.message} - Failed to delete author`});
+			next(error);
 		}
 	};
 

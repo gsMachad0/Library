@@ -1,65 +1,68 @@
+import NotFound from "../errors/NotFound.js";
 import books from "../models/Book.js";
 
 class BookController {
 
-	static listBooks = async (req, res) => {
+	static listBooks = async (req, res, next) => {
 		try{
 			const booksResult = await books.find().populate("author");
 			res.status(200).json(booksResult);
 		}catch(error){
-			res.status(400).send({message: `${err.message}`});
+			next(error);
 		}
 	};
 
-	static listBookByID = async (req, res) => {
+	static listBookByID = async (req, res, next) => {
 		const id = req.params.id;
-		try{
-			
+		try{			
 			const booksResult = await books.findById(id).populate("author", "name");
-			res.status(200).send(booksResult);
+			if(booksResult != null){
+				res.status(200).send(booksResult);
+			} else {
+				next(new NotFound(`ID ${id} not found!`));
+			}
 		}catch(error){
-			res.status(400).send({message: `${error.message} - Book with ID[${id}] not found.`});
+			next(error);
 		}
 	};
 
-	static listBookByPublisher = async (req, res) => {
+	static listBookByPublisher = async (req, res, next) => {
 		const pub = req.query.publisher;
 		try{			
 			let booksResult = await books.find({"publisher": pub}, {});
 			res.status(200).send(booksResult);
 		}catch(error){
-			res.status(400).send({message: `${error.message} - Failed to find book with publisher ${pub}`});
+			next(error);
 		}
 	};
 
-	static registerBook = async (req, res) => {
+	static registerBook = async (req, res, next) => {
 		try{
 			let book = new books(req.body);
 			await book.save();
 			res.status(201).send(book.toJSON());
 		}catch(error){
-			res.status(500).send({message: `${error.message} - Failed to register new book`});
+			next(error);
 		}
 	};
 
-	static updateBook = async (req, res) => {
+	static updateBook = async (req, res, next) => {
 		try{
 			const id = req.params.id;
 			await books.findByIdAndUpdate(id, {$set: req.body});
 			res.status(200).send({message: "Book updated"});
 		}catch(error){
-			res.status(500).send({message: `${error.message} - Failed to update book`});
+			next(error);
 		}
 	};
 
-	static deleteBook = async (req, res) => {
+	static deleteBook = async (req, res, next) => {
 		try{
 			const id = req.params.id;
 			await books.findByIdAndDelete(id);
 			res.status(200).send({message: "Book deleted"});
 		}catch(error){
-			res.status(500).send({message: `${error.message} - Failed to delete book`});
-
+			next(error);
 		}
 	};
 
