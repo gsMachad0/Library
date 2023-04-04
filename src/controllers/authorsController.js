@@ -1,5 +1,5 @@
 import NotFound from "../errors/NotFound.js";
-import authors from "../models/Author.js";
+import {authors} from "../models/index.js";
 
 class AuthorsController {
 
@@ -45,8 +45,13 @@ class AuthorsController {
 		try
 		{      
 			const id = req.params.id;
-			await authors.findByIdAndUpdate(id, {$set: req.body});
-			res.status(200).send({message: "Author updated"});
+			const authorResult = await authors.findByIdAndUpdate(id, {$set: req.body});
+			if(authorResult != null){
+				res.status(200).send({message: "Author updated"});
+			} else {
+				next(new NotFound(`ID ${id} not found!`));
+			}
+			
 		} catch(error)
 		{
 			next(error);
@@ -57,8 +62,12 @@ class AuthorsController {
 		try
 		{
 			const id = req.params.id;
-			await authors.findByIdAndDelete(id);
-			res.status(200).send({message: "author deleted"});
+			const authorResult = await authors.findByIdAndDelete(id);
+			if(authorResult != null){
+				res.status(200).send({message: "author deleted"});
+			} else {
+				next(new NotFound(`ID ${id} not found!`));
+			}
 		} catch(error)
 		{
 			next(error);

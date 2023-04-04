@@ -16,7 +16,16 @@ const bookSchema = new mongoose.Schema(
 			type: String, 
 			required: [true, "Book's publisher is required"]
 		},
-		pagesNumber: {type: Number}
+		pagesNumber: {
+			type: Number,
+			//Custom validator
+			validate: {
+				validator: (value) => {
+					return value >= 10 && value <= 5000;
+				},
+				message: "Number of pages must be between 1 and 5000. Value informed: {VALUE}"
+			}
+		}
 	}
 );
 

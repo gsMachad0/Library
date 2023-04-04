@@ -1,5 +1,5 @@
 import NotFound from "../errors/NotFound.js";
-import books from "../models/Book.js";
+import {authors, books} from "../models/index.js";
 
 class BookController {
 
@@ -26,11 +26,18 @@ class BookController {
 		}
 	};
 
-	static listBookByPublisher = async (req, res, next) => {
-		const pub = req.query.publisher;
-		try{			
-			let booksResult = await books.find({"publisher": pub}, {});
-			res.status(200).send(booksResult);
+	static listBookByFilter = async (req, res, next) => {		
+		try{		
+			const search = await handleSearch(req.query);
+			
+			if(search !== null){
+				const booksResult = await books
+					.find(search)
+					.populate("author");
+				res.status(200).send(booksResult);
+			} else {
+				res.status(200).send([]);
+			}			
 		}catch(error){
 			next(error);
 		}
@@ -49,8 +56,12 @@ class BookController {
 	static updateBook = async (req, res, next) => {
 		try{
 			const id = req.params.id;
-			await books.findByIdAndUpdate(id, {$set: req.body});
-			res.status(200).send({message: "Book updated"});
+			const bookResult = await books.findByIdAndUpdate(id, {$set: req.body});
+			if(bookResult != null){
+				res.status(200).send({message: "Book updated"});
+			} else {
+				next(new NotFound(`ID ${id} not found!`));
+			}			
 		}catch(error){
 			next(error);
 		}
@@ -59,13 +70,45 @@ class BookController {
 	static deleteBook = async (req, res, next) => {
 		try{
 			const id = req.params.id;
-			await books.findByIdAndDelete(id);
-			res.status(200).send({message: "Book deleted"});
+			const bookResult = await books.findByIdAndDelete(id);
+			if(bookResult != null){
+				res.status(200).send({message: "Book deleted"});
+			} else {
+				next(new NotFound(`ID ${id} not found!`));
+			}				
 		}catch(error){
 			next(error);
 		}
 	};
 
+}
+
+async function handleSearch(params){
+	const { publisher , title, minPages, maxPages, authorName } = params;	
+
+	let search = {};
+
+	if(publisher) search.publisher = publisher;
+	if(title) search.title = { $regex: title, $options: "i"};
+
+	if(minPages || maxPages) search.pagesNumber = {};
+
+	//Greater Than or Equal
+	if(minPages) search.pagesNumber.$gte = minPages;
+	//Lesser Than or Equal
+	if(maxPages) search.pagesNumber.$lte = maxPages;
+
+	if(authorName) {
+		const author = await authors.findOne({ name: authorName });
+		if(author !== null){
+			search.author = author._id;
+		} else {
+			search = null;
+		}
+		
+	}
+
+	return search;
 }
 
 export default BookController;
